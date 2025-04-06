@@ -1,10 +1,9 @@
 import sqlite3
 from datetime import datetime, timedelta
 
+import config
 import disnake
 from disnake.ext import commands
-
-import config
 
 
 class Logging(commands.Cog):

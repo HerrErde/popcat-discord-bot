@@ -1,11 +1,9 @@
 import time
 from datetime import datetime
 
+import config
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import errors
-
-import config
-
 
 db_host = config.DB_HOST
 db_user = config.DB_USER

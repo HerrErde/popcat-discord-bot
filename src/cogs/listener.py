@@ -1,12 +1,12 @@
 import os
 from datetime import datetime
 
+import config
 import disnake
 import humanize
 import requests
 from disnake.ext import commands, tasks
 
-import config
 from db import DBHandler, RedisHandler
 from module import Welcome
 

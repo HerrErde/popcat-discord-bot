@@ -1,8 +1,7 @@
 import asyncio
 
-import redis.asyncio as redis
-
 import config
+import redis.asyncio as redis
 
 redis_host = config.REDIS_HOST
 redis_port = config.REDIS_PORT

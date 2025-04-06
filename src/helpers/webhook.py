@@ -1,5 +1,5 @@
-import topgg
 import config
+import topgg
 
 
 @topgg.endpoint("/webhook", topgg.WebhookType.BOT, config.VOTING_KEY)

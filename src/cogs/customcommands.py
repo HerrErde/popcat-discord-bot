@@ -1,7 +1,7 @@
+import config
 import disnake
 from disnake.ext import commands
 
-import config
 from db import DBHandler
 
 

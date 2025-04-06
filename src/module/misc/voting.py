@@ -1,8 +1,8 @@
 import json
 
+import config
 import requests
 
-import config
 from db import RedisHandler
 
 

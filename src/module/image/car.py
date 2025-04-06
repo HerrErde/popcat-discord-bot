@@ -2,10 +2,9 @@ import random
 from io import BytesIO
 
 import asyncpraw
+import config
 import requests
 from PIL import Image
-
-import config
 
 carporn_url = "https://www.reddit.com/r/carporn.json"
 car_url = "https://www.reddit.com/r/cars.json"

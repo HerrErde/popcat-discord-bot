@@ -2,10 +2,10 @@ import asyncio
 import os
 import platform
 
+import config
 import disnake
 from disnake.ext import commands, tasks
 
-import config
 from db import DBHandler, RedisHandler
 
 if config.VOTING_HOOK:

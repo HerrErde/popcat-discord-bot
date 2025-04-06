@@ -1,10 +1,9 @@
 import json
 
 import aiohttp
+import config
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
-
-import config
 
 
 class CachedLimiterSession(CacheMixin, Session):

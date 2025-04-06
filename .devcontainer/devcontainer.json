@@ -1,0 +1,29 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+  },
+  "hostRequirements": {
+    "cpus": 2
+  },
+  "waitFor": "onCreateCommand",
+  "updateContentCommand": "pip install -r src/requirements.txt",
+  "postCreateCommand": "",
+  "postAttachCommand": "",
+  "vscode": {
+    "extensions": [
+      "ms-python.python",
+      "esbenp.prettier-vscode",
+      "DavidAnson.vscode-markdownlint",
+      "eamodio.gitlens",
+      "njqdev.vscode-python-typehint",
+      "donjayamanne.git-extension-pack",
+      "codezombiech.gitignore",
+      "oderwat.indent-rainbow",
+      "littlefoxteam.vscode-python-test-adapter",
+      "hbenl.vscode-test-explorer",
+      "ms-azuretools.vscode-docker",
+      "KevinRose.vsc-python-indent",
+      "qwtel.sqlite-viewer"
+    ]
+  }
+}

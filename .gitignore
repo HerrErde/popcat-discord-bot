@@ -1,0 +1,6 @@
+__pycache__/
+/src/data
+config.py
+.env
+.venv
+*.sqlite

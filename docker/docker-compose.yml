@@ -1,0 +1,67 @@
+services:
+  popcat-api:
+    container_name: popcat-api
+    image: ghcr.io/herrerde/popcat-api:latest
+    restart: always
+    ports:
+      - 6090:6090
+  popcat-bot:
+    container_name: Popcat Bot
+    image: ghcr.io/herrerde/popcat-discord-bot:latest
+    restart: always
+    environment:
+      - TOKEN=
+      - DEBUG=False
+      - OWNER_USER_IDS= 
+      - API_URL= 
+      - TIMEZONE=
+      - REDDIT_ID=
+      - REDDIT_SECRET=
+      - BRAINSHOP_APIKEY=
+      - BRAINSHOP_ID=
+      - REDIS_HOST=redis
+      - REDIS_PORT=
+      - REDIS_DB=0
+      - REDIS_USER=
+      - REDIS_PASS=
+      - DATABASE_TYPE=mongodb
+      - MONGODB_HOST=db
+      - MONGODB_USER=popcat
+      - MONGODB_PASS=popcat
+      - MONGODB_CLUSTER=Cluster0
+      - VOTING_ENABLE=
+      - VOTING_KEY=
+      - VOTING_PORT=
+      - TODO_WEB=False
+      - OAUTH2_CLIENT_ID=
+      - OAUTH2_CLIENT_SECRET=
+      - FLASK_SECRET_KEY=
+      - OAUTH2_REDIRECT_URI=
+#    ports:
+#      - 1024:1024 # when using voting webhook
+    depends_on:
+      - db
+      - redis
+  db:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=popcat
+      - MONGO_INITDB_ROOT_PASSWORD=popcat
+    volumes:
+      - mongo-data:/data/db
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server --save 60 1 --loglevel warning --requirepass <PASSWORD>
+    volumes: 
+      - redis-data:/data
+      - redis-data:/usr/local/etc/redis/redis.conf
+volumes:
+  mongo-data:
+    driver: local
+  redia-data:
+    driver: local

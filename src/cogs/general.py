@@ -1,11 +1,11 @@
 import platform
 from datetime import datetime, timezone
 
-import config
 import disnake
 import psutil
 from disnake.ext import commands
 
+import config
 from db import DBHandler, RedisHandler
 from helpers import errors
 

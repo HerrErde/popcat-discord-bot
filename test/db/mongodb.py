@@ -1,9 +1,10 @@
 import warnings
 from datetime import datetime
 
-import config
 from cryptography.utils import CryptographyDeprecationWarning
 from pymongo import MongoClient
+
+import config
 
 # Suppress the CryptographyDeprecationWarning
 warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)

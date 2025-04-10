@@ -1,8 +1,8 @@
-import config
 import disnake
 from disnake.ext import commands
 from disnake.ui import Select, View
 
+import config
 from helpers import errors
 
 

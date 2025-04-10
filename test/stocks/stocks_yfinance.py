@@ -1,9 +1,10 @@
 import json
 
-import config
 import yfinance as yf
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
+
+import config
 
 
 class CachedLimiterSession(CacheMixin, Session):

@@ -3,10 +3,10 @@ import random
 import time
 from datetime import datetime, timedelta
 
-import config
 import disnake
 from disnake.ext import commands
 
+import config
 from db import DBHandler, RedisHandler
 from helpers import errors
 

@@ -2,12 +2,12 @@ import asyncio
 import random
 from datetime import datetime
 
-import config
 import disnake
 import requests
 from bs4 import BeautifulSoup
 from disnake.ext import commands
 
+import config
 from helpers import errors
 
 

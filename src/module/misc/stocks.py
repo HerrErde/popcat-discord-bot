@@ -1,11 +1,12 @@
 import json
 
-import config
 import yfinance as yf
 from pyrate_limiter import Duration, Limiter, RequestRate
 from requests import Session
 from requests_cache import CacheMixin, SQLiteCache
 from requests_ratelimiter import LimiterMixin, MemoryQueueBucket
+
+import config
 
 
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):

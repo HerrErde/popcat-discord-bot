@@ -1,7 +1,8 @@
 from io import BytesIO
 
-import config
 import requests
+
+import config
 
 
 class Welcome:

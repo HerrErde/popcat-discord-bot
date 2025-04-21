@@ -1,6 +1,6 @@
-aiohttp==3.11.16
+aiohttp==3.11.17
 asyncpraw==7.8.1
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
 disnake==2.10.1
 geopy==2.4.1
 haversine==2.9.0

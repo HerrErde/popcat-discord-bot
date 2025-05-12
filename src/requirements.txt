@@ -20,5 +20,5 @@ Requests==2.32.3
 requests_cache==1.2.1
 requests_ratelimiter==0.7.0
 webcolors==24.11.1
-yfinance==0.2.58
+yfinance==0.2.60
 zalgo_text==0.6

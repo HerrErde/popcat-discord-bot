@@ -5,7 +5,7 @@ disnake==2.10.1
 geopy==2.4.1
 haversine==2.9.0
 humanize==4.12.3
-motor==3.7.0
+motor==3.7.1
 numpy==2.2.4
 Pillow==11.2.1
 psutil==7.0.0
@@ -15,10 +15,10 @@ pyrate_limiter<4.0
 python-dotenv==1.1.0
 pytz==2025.2
 PyYAML==6.0.2
-redis==5.2.1
+redis==6.1.0
 Requests==2.32.3
 requests_cache==1.2.1
 requests_ratelimiter==0.7.0
 webcolors==24.11.1
-yfinance==0.2.60
+yfinance==0.2.61
 zalgo_text==0.6

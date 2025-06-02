@@ -1,4 +1,4 @@
-aiohttp==3.11.18
+aiohttp==3.12.6
 asyncpraw==7.8.1
 beautifulsoup4==4.13.4
 disnake==2.10.1
@@ -15,7 +15,7 @@ pyrate_limiter<4.0
 python-dotenv==1.1.0
 pytz==2025.2
 PyYAML==6.0.2
-redis==6.1.0
+redis==6.2.0
 Requests==2.32.3
 requests_cache==1.2.1
 requests_ratelimiter==0.7.0

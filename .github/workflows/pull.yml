@@ -57,7 +57,7 @@ jobs:
 
       - name: Commit Style Fixes
         id: auto-commit
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: 'Style fixes'
         env:

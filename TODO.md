@@ -143,6 +143,8 @@ Stocks
 - [x] Leaderboard
 - [x] Portfolio
 
+https://github.com/xiaopc/qdii-value/blob/main/qdii_value/provider/equity/gfinance.py
+
 Stocks list \
 https://en.wikipedia.org/wiki/List_of_S%26P_500_companies \
 Others \

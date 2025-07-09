@@ -2,7 +2,8 @@ import time
 from datetime import datetime
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo import errors
+from pymongo import errors, ReadPreference
+from pymongo.client_session import TransactionOptions
 
 import config
 
@@ -33,8 +34,8 @@ class DBHandler:
             try:
                 self.client = AsyncIOMotorClient(
                     MONGODB_URI,
-                    serverSelectionTimeoutMS=10000,  # Increased timeout
-                    readPreference="secondaryPreferred",  # Allow secondary read preference
+                    serverSelectionTimeoutMS=10000,
+                    readPreference="secondaryPreferred",
                 )
                 self.client.admin.command("ping")
                 self.db_guilds = self.client["guilds"]
@@ -2228,27 +2229,27 @@ class DBHandler:
 
     async def stocks_sell(self, user_id, symbol, shares, amount, price):
         collection_name = str(user_id)
-
-        datetime.utcnow()
         timestamp = int(datetime.now().timestamp())
 
-        user_exists = (
+        # Ensure user exists
+        exists = (
             await self.db_users.db_users[collection_name].count_documents(
                 {"stocks": {"$exists": True}}
             )
             > 0
         )
-
-        if not user_exists:
-            # If user does not exist, run the upsert function
+        if not exists:
             await self.upsert_economy(user_id)
 
-        async with await self.client.start_session() as session:
+        async with await self.client.start_session(
+            default_transaction_options=TransactionOptions(
+                read_preference=ReadPreference.PRIMARY
+            )
+        ) as session:
             async with session.start_transaction():
                 try:
-                    # Add transaction and decuct shares user's stocks
                     result = await self.db_users[collection_name].update_one(
-                        {},
+                        {f"stocks.{symbol}.shares": {"$gte": shares}},
                         {
                             "$push": {
                                 f"stocks.{symbol}.transactions": {
@@ -2260,31 +2261,42 @@ class DBHandler:
                             },
                             "$inc": {f"stocks.{symbol}.shares": -shares},
                         },
-                        upsert=True,
                         session=session,
                     )
 
-                    # Check if the deduction was successful
                     if result.matched_count == 0:
                         await session.abort_transaction()
-                        print(f"Error: User {user_id} does not have enough stocks.")
                         return False, False
 
-                    # Add amount to user's bank
+                    # cleanup zero shares
+                    user_data = await self.db_users[collection_name].find_one(
+                        {}, session=session
+                    )
+                    shares_left = (
+                        user_data.get("stocks", {}).get(symbol, {}).get("shares", 0)
+                    )
+
+                    if shares_left <= 0:
+                        await self.db_users[collection_name].update_one(
+                            {},
+                            {"$unset": {f"stocks.{symbol}": ""}},
+                            session=session,
+                        )
+
+                    # credit bank
                     await self.db_users[collection_name].update_one(
                         {},
                         {"$inc": {"economy.bank": amount}},
-                        upsert=True,
                         session=session,
                     )
 
                     await session.commit_transaction()
-
                     return True, True
 
                 except Exception as e:
+                    await session.abort_transaction()
                     if config.DEBUG:
-                        print(f"Error selling stock {stock} for user {user_id}: {e}")
+                        print(f"Error selling {shares} of {symbol} for {user_id}: {e}")
                     return False, False
 
     async def stocks_portfolio(self, user_id):

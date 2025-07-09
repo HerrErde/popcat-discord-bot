@@ -20,13 +20,16 @@ class stocks(commands.Cog):
     async def autocomp_stock(
         inter: disnake.ApplicationCommandInteraction, user_input: str
     ):
-        stocks_list = await Stocks.stocks_list()
+        stocks_list = await Stocks.stocks_list(user_input.lower())
 
         filtered_stocks = [
             stock for stock in stocks_list if user_input.lower() in stock.lower()
         ]
 
-        return filtered_stocks[:25]
+        return [
+            disnake.OptionChoice(name=stock, value=stock)
+            for stock in filtered_stocks[:25]
+        ]
 
     @commands.slash_command(
         name="stocks", description="Buy, sell and check stock prices."
@@ -48,9 +51,9 @@ class stocks(commands.Cog):
     ):
         await inter.response.defer()
 
-        if stock not in Stocks.stocks_list:
+        if stock not in await Stocks.stocks_list():
             await inter.followup.send(
-                embed=errors.create_error_embed(f"Invalid item selected: {e}")
+                embed=errors.create_error_embed(f"Invalid item selected: {stock}")
             )
             return
 
@@ -62,15 +65,15 @@ class stocks(commands.Cog):
             shares, loss, loss_perc, price = await Stocks.stock_info(symbol, amount)
             if config.DEBUG:
                 print(
-                    f"Shares: {shares}, Loss: {loss}, Loss %: {loss_perc}, Price/share $: {price}"
+                    f"Shares: {round(shares, 2)}, Loss: {loss}, Loss %: {loss_perc}, Price/share $: {price}"
                 )
 
             success, item_added = await self.db_handler.stocks_buy(
-                user_id, symbol, shares, amount, price
+                user_id, symbol, round(shares, 2), amount, price
             )
             if success:
                 if item_added:
-                    message = f"🚀🚀 Successfully bought `{shares:.3f}` shares of **{symbol.upper()}** for `{amount}` <a:coin:1270075840901812304>."
+                    message = f"🚀🚀 Successfully bought `{round(shares, 2)}` shares of **{symbol.upper()}** for `{amount}` <a:coin:1270075840901812304>."
                 else:
                     message = "You don't have enough Pop Coins in your bank account to buy this stock."
             else:
@@ -102,7 +105,7 @@ class stocks(commands.Cog):
 
         await inter.response.defer()
 
-        if stock not in Stocks.stocks_list:
+        if stock not in await Stocks.stocks_list():
             await inter.followup.send(
                 embed=errors.create_error_embed(f"Invalid item selected: {stock}")
             )
@@ -114,19 +117,25 @@ class stocks(commands.Cog):
             symbol = stock.split(" - ")[0].lower()
 
             shares, loss, loss_perc, price = await Stocks.stock_info(symbol, amount)
-            print(
-                f"Shares: {shares}, Loss: {loss}, Loss %: {loss_perc}, Price/share $: {price}"
-            )
-            if shares is None:
-                message = "Failed to fetch the stock price. Please try again later."
+            if shares is None or price is None:
+                await inter.followup.send(
+                    embed=errors.create_error_embed(
+                        "Failed to fetch the stock price. Please try again later."
+                    )
+                )
+                return
+            if config.DEBUG:
+                print(
+                    f"Shares: {round(shares, 2)}, Loss: {loss}, Loss %: {loss_perc}, Price/share $: {price}"
+                )
 
             success, item_added = await self.db_handler.stocks_sell(
-                user_id, symbol, shares, amount, price
+                user_id, symbol, round(shares, 2), amount, price
             )
 
             if success:
                 if item_added:
-                    message = f"💰 Successfully sold `{shares}` shares of **{symbol.upper()}** for `{amount}` :PopCoin:. Loss: ${loss:.2f} ({loss_perc:.2f}%)"
+                    message = f"💰 Successfully sold `{round(shares, 2)}` shares of **{symbol.upper()}** for `{amount}` :PopCoin:. Loss: ${loss:.2f} ({loss_perc:.2f}%)"
             else:
                 message = "You don't own enough of this stock to sell."
 
@@ -177,10 +186,7 @@ class stocks(commands.Cog):
                 transactions = data["transactions"]
                 total_shares = 0
                 total_cost = 0
-                total_value = 0
-                total_profit_loss_for_stock = 0
 
-                # Process each transaction for the current stock symbol
                 for txn in transactions:
                     if txn["action"] == "buy":
                         total_shares += txn["shares"]
@@ -189,15 +195,13 @@ class stocks(commands.Cog):
                         total_shares -= txn["shares"]
                         total_cost -= txn["shares"] * txn["price"]
 
-                # Await the current stock price asynchronously
-                # Await the async function
+                # Skip stocks fully sold
+                if total_shares <= 0:
+                    continue
+
                 current_price = await Stocks.stock_price(symbol)
                 total_value = total_shares * current_price
                 total_profit_loss_for_stock = total_value - total_cost
-
-                # Add stock value to the total portfolio value and profit/loss
-                total_portfolio_value += total_value
-                total_profit_loss += total_profit_loss_for_stock
 
                 # Build portfolio details for each stock
                 profit_perc = (
@@ -205,10 +209,13 @@ class stocks(commands.Cog):
                     if total_cost > 0
                     else 0
                 )
+
                 portfolio_details.append(
-                    f"**{symbol.upper()}**: {total_shares:.3f} shares, Current Price: ${current_price:.2f}, "
+                    f"**{symbol.upper()}**: {total_shares:.3f} shares, "
+                    f"Current Price: ${current_price:.2f}, "
                     f"Total Value: ${total_value:,.2f}, "
-                    f"{'Profit' if total_profit_loss_for_stock >= 0 else 'Loss'}: ${total_profit_loss_for_stock:,.2f} ({profit_perc:+.2f}%)"
+                    f"{'Profit' if total_profit_loss_for_stock >= 0 else 'Loss'}: "
+                    f"${total_profit_loss_for_stock:,.2f} ({profit_perc:.2f}%)"
                 )
 
             # Calculate the total loss percentage for the portfolio

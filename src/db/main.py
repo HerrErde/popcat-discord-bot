@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo import errors, ReadPreference
+from pymongo import ReadPreference, errors
 from pymongo.client_session import TransactionOptions
 
 import config

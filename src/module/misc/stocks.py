@@ -1,5 +1,7 @@
-from ..util import googlestocks
 import json
+
+from ..util import googlestocks
+
 
 class Stocks:
     @staticmethod

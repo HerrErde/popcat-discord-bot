@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from io import BytesIO
 
 import disnake

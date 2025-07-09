@@ -1,12 +1,10 @@
-import requests
+import datetime
 import json
 import random
-import datetime
-import pandas as pd
-
-from requests import Session
 import re
 
+import pandas as pd
+import requests
 
 __base_path = "https://www.google.com/finance/_/GoogleFinanceUi/data/batchexecute?"
 __session = requests.Session()

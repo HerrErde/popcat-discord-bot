@@ -1,5 +1,5 @@
 from ..util import googlestocks
-
+import json
 
 class Stocks:
     @staticmethod
@@ -120,6 +120,8 @@ class Stocks:
             print(f"[ERROR] stock_info failed for {symbol}: {e}")
             return None, None, None, None
 
+    # Slow and looks empty
+    """ 
     async def stocks_list(query: str = ""):
         try:
             if query:
@@ -136,6 +138,21 @@ class Stocks:
         except Exception as e:
             print(f"[ERROR] An error occurred while fetching stocks list: {e}")
             return []
+    """
+
+    async def stocks_list(query: str):
+        with open("assets/data/ticker_to_cik_mapping.json", "r") as f:
+            symbols = json.load(f)
+
+        stock_list = []
+
+        for entry in symbols[:25]:
+            try:
+                stock_list.append(f"{entry['Ticker']} - {entry['Name']}")
+            except KeyError:
+                stock_list.append(f"{entry.get('Ticker', 'N/A')} - N/A")
+
+        return stock_list
 
     @staticmethod
     def get_exchange(symbol):

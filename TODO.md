@@ -36,8 +36,9 @@ Fun
 - [x] Dino
 - [x] WorldClock
 - [x] Distance \
-       <https://countryinfoapi.com> \
-       <https://github.com/bhatvikrant/world-countries-capitals>
+       <https://countryinfoapi.com> Dead \
+       <https://github.com/bhatvikrant/world-countries-capitals>\
+       <https://restcountries.com>
 
 Utility
 
@@ -113,9 +114,10 @@ Searching
 - [x] NPM
 - [x] GitHub
 - [x] Periodic-Table
-- [x] Country
-      <https://countryinfoapi.com>
-      <https://github.com/bhatvikrant/world-countries-capitals>
+- [x] Country \
+       <https://countryinfoapi.com> Dead \
+       <https://github.com/bhatvikrant/world-countries-capitals> \
+       <https://restcountries.com>
 
 Welcoming
 

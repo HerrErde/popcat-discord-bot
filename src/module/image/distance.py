@@ -10,12 +10,16 @@ img_path = "assets/images/distance.png"
 
 
 def get_coordinates(country_name):
-    geolocator = Nominatim(user_agent="country_distance_calculator")
-    location = geolocator.geocode(country_name)
-    if location:
-        return (location.latitude, location.longitude)
-    else:
-        print(f"Could not find coordinates for {country_name}")
+    try:
+        geolocator = Nominatim(user_agent="country_distance_calculator")
+        location = geolocator.geocode(country_name)
+        if location:
+            return (location.latitude, location.longitude)
+        else:
+            print(f"Could not find coordinates for {country_name}")
+            return None
+    except requests.RequestException as e:
+        print(f"Failed to location for {country}: {e}")
         return None
 
 
@@ -32,12 +36,12 @@ def calculate_distance(country1, country2):
 
 def fetch_country_icon(country):
     """Fetch and invert the colors of a country's icon."""
-    url = f"https://countryinfoapi.com/api/countries/name/{country}"
+    url = f"https://restcountries.com/v3.1/name/{country}?fields=cca2"
     try:
         response = requests.get(url)
         response.raise_for_status()
         country_data = response.json()
-        shortcode = country_data.get("cca2", "").lower()
+        shortcode = country_data[0].get("cca2", "").lower()
         image_url = f"https://raw.githubusercontent.com/djaiss/mapsicon/master/all/{shortcode}/1024.png"
         image_response = requests.get(image_url)
         image_response.raise_for_status()

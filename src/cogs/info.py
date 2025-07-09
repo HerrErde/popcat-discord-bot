@@ -17,7 +17,7 @@ from module.text import color
 
 # Function to fetch country data
 def fetch_country_data():
-    url = "https://countryinfoapi.com/api/countries"
+    url = "https://restcountries.com/v3.1/all?fields=name"
     response = requests.get(url)
     response.raise_for_status()
     return response.json()
@@ -29,7 +29,9 @@ country_data = fetch_country_data()
 
 # Function to fetch country names
 def fetch_country_names():
-    country_names = [country.get("name", "") for country in country_data]
+    country_names = [
+        country.get("name", {}).get("common", "") for country in country_data
+    ]
     return sorted(country_names)
 
 
@@ -41,10 +43,10 @@ class info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @staticmethod
     async def autocomp_country(
         inter: disnake.ApplicationCommandInteraction, user_input: str
     ):
-        # Filter and limit the list to 25 items
         filtered_countries = [
             country
             for country in country_names
@@ -123,7 +125,7 @@ class info(commands.Cog):
         ),
     ):
         try:
-            url = f"https://countryinfoapi.com/api/countries/name/{country}"
+            url = f"https://restcountries.com/v3.1/name/{country}?fields=name,car,languages,landlocked,cca2,borders,tld,continents,area,idd,capital,currencies&fullText=true"
             country_file = "assets/data/countries.json"
 
             def load_data():
@@ -136,7 +138,9 @@ class info(commands.Cog):
                 for country in data:
                     if country["country"].lower() == country_name.lower():
                         famous_for = country.get("famous_for", "Unknown")
-                        neighbors = country.get("neighbors", "Unknown")
+                        neighbors = ", ".join(
+                            sorted(country.get("neighbors", "Unknown"))
+                        )
                         return famous_for, neighbors
                 return "None"
 
@@ -144,26 +148,30 @@ class info(commands.Cog):
 
             response = requests.get(url)
             response.raise_for_status()
-            data = response.json()
+            data = response.json()[0]
 
-            name = data.get("name", "Unknown")
-            capital = data.get("capital", ["Unknown"])[0]
+            name = data.get("name", {}).get("common", "Unknown")
+            capital = ", ".join(data.get("capital", "Unknown"))
             currency = (
                 data.get("currencies", {})
                 .get(list(data.get("currencies", {}).keys())[0], {})
                 .get("name", "Unknown")
             )
             languages = ", ".join(data.get("languages", {}).values())
-            callingcode = data.get("callingcode", "Unknown")
+            callingcode = (
+                data.get("idd", {}).get("root", "")
+                + data.get("idd", {}).get("suffixes", [""])[0]
+                if data.get("idd", {}).get("root", "")
+                and data.get("idd", {}).get("suffixes", [""])
+                else "Unknown"
+            )
             driving_side = data.get("car", {}).get("side", "Unknown")
             area = "{:,} km²".format(data.get("area", 0))
             continents = ", ".join(data.get("continents", "Unknown"))
-            tld = data.get("tld", "Unknown")[0]
+            tld = ", ".join(data.get("tld", ["Unknown"]))
+
             landlocked = "Yes" if data.get("landlocked") else "No"
-            borders = ", ".join(sorted(neighbors))
-            famous_for = ", ".join(
-                [item.capitalize() for item in famous_for.split(", ")]
-            )
+            famous_for = ", ".join(item.title() for item in famous_for.split(", "))
 
             # borders = ", ".join(sorted(data.get("borders", [])))
             # if not borders:
@@ -185,7 +193,7 @@ class info(commands.Cog):
             embed.add_field(name="Continent", value=continents, inline=True)
             embed.add_field(name="TLD", value=tld, inline=True)
             embed.add_field(name="Landlocked", value=landlocked, inline=True)
-            embed.add_field(name="Neighbours", value=borders, inline=True)
+            embed.add_field(name="Neighbours", value=neighbors.lower(), inline=True)
 
             embed.set_thumbnail(url=image_url)
 

@@ -16,7 +16,7 @@ from helpers import errors
 # Function to fetch country data
 def fetch_country_data():
     try:
-        url = "https://countryinfoapi.com/api/countries"
+        url = "https://restcountries.com/v3.1/all?fields=name,cca2,latlng"
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
@@ -29,11 +29,12 @@ def fetch_country_data():
 
 def fetch_country_shortcode(country):
     try:
-        url = f"https://countryinfoapi.com/api/countries/name/{country}"
+        print(country)
+        url = f"https://restcountries.com/v3.1/name/{country}&fullText=true"
         response = requests.get(url)
         response.raise_for_status()
-        data = response.json()  # Parse JSON response
-        return data.get("cca2", "").lower()
+        data = response.json()
+        return data[0].get("cca2", "").lower()
     except (requests.RequestException, ValueError, KeyError):
         return None
     except Exception as e:
@@ -66,7 +67,9 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 # Function to fetch country names
 def fetch_country_names():
-    country_names = [country.get("name", "") for country in country_data]
+    country_names = [
+        country.get("name", {}).get("common", "") for country in country_data
+    ]
     return sorted(country_names)
 
 
@@ -157,7 +160,7 @@ class game(commands.Cog):
             # TODO change it to only saving cca2 code and fetching everything along the way
             # Get random country shortcode, name, and latlng
             shortcode = random_country.get("cca2", "").lower()
-            country_name = random_country.get("name", "")
+            country_name = random_country.get("name", {}).get("common", "")
             country_latlng = random_country.get("latlng", [0, 0])
 
             if not country_latlng or len(country_latlng) != 2:
@@ -256,7 +259,7 @@ class game(commands.Cog):
                     b"country_name", b"Unknown"
                 ).decode("utf-8")
                 target_latlng = session_data.get(b"latlng", b"0,0").decode("utf-8")
-                history = session_data.get(b"history", b"1").decode("utf-8")
+                history = session_data.get(b"history", b"0").decode("utf-8")
 
                 embed.add_field(
                     name=f"Session `{key.decode('utf-8')}` | Player: {user.name}",
@@ -370,25 +373,19 @@ class game(commands.Cog):
             # Decode and parse the session data
             target_country_name = session_data.get(b"country_name", b"").decode("utf-8")
             shortcode = session_data.get(b"shortcode", b"").decode("utf-8")
-            history = int(
-                session_data.get(b"history", b"1").decode("utf-8")
-            )  # Convert to int and default to 1
+            history = int(session_data.get(b"history", b"0").decode("utf-8"))
 
-            # Handle latlng (it might be a string or already a list)
             latlng = session_data.get("latlng", "[0, 0]")
-            if isinstance(latlng, str):
-                target_latlng = json.loads(latlng)  # Parse JSON string
-            elif isinstance(latlng, list):
-                target_latlng = latlng  # Use directly if it's already a list
+            if isinstance(latlng, list):
+                target_latlng = latlng
             else:
                 target_latlng = [0, 0]  # Default to [0, 0] if invalid
 
-            # Look up the guessed country in country_data
             guessed_country_data = next(
                 (
                     c
                     for c in country_data
-                    if c.get("name", "").lower() == country.lower()
+                    if c.get("name", {}).get("common", "").lower() == country.lower()
                 ),
                 None,
             )
@@ -421,6 +418,7 @@ class game(commands.Cog):
             file = disnake.File(output_bytes, filename="country.png")
             embed = disnake.Embed()
 
+            history += 1
             if country.lower() == target_country_name.lower():
                 # Correct guess
                 embed.title = "GG"
@@ -439,7 +437,6 @@ class game(commands.Cog):
                 await self.redis_client.delete(f"{user_id}:game")
             else:
                 # Incorrect guess
-                history += 1
                 embed.title = "Wrong!"
                 embed.color = disnake.Color.red()
                 embed.add_field(name="Your Guess", value=f"`{country}`", inline=True)
@@ -453,7 +450,6 @@ class game(commands.Cog):
                 # Update the session data with the new history value
                 await self.redis_client.hset(f"{user_id}:game", "history", str(history))
 
-            # Send the response
             await inter.followup.send(embed=embed, file=file)
 
         except Exception as e:
@@ -491,7 +487,8 @@ class game(commands.Cog):
                     (
                         c
                         for c in country_data
-                        if c.get("name", "").lower() == target_country_name.lower()
+                        if c.get("name", {}).get("common", "").lower()
+                        == target_country_name.lower()
                     ),
                     None,
                 )

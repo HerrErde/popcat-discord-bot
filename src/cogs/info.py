@@ -3,7 +3,6 @@ import re
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 
-import asyncpraw
 import disnake
 import pytz
 import requests
@@ -421,50 +420,66 @@ class info(commands.Cog):
         inter: disnake.ApplicationCommandInteraction,
         name: str = commands.Param(description="Subreddit name."),
     ):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0"
+        }
+
         try:
-            reddit = asyncpraw.Reddit(
-                client_id=config.REDDIT_ID,
-                client_secret=config.REDDIT_SECRET,
-                user_agent="discord:popcat:v1.0 (by /u/herrerde)",
+            url = f"https://www.reddit.com/r/{name}/about.json"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+
+            data = response.json().get("data", {})
+
+            display_name = data.get("display_name")
+            title = data.get("title")
+            icon = data.get("community_icon") or data.get("icon_img")
+            active_user_count = data.get("active_user_count") or data.get(
+                "accounts_active"
             )
+            subscribers = data.get("subscribers")
+            description = data.get("public_description")
+            allow_images = data.get("allow_images")
+            allow_videos = data.get("allow_videos")
+            over18 = data.get("over18")
 
-            subreddit = await reddit.subreddit(name)
-
-            await subreddit.load()
-
-            title = subreddit.title
-            subscribers = subreddit.subscribers
-            active_users = subreddit.accounts_active
-            created_utc = datetime.fromtimestamp(subreddit.created_utc, timezone.utc)
-            created = created_utc.strftime("%a, %b %d %Y")
-            description = subreddit.public_description
-            over18 = "Yes" if subreddit.over18 else "No"
-            icon = subreddit.icon_img or ""
-            subreddit_url = f"https://www.reddit.com/r/{subreddit.display_name}/"
+            subreddit_url = f"https://reddit.com/r/{name}"
 
             embed = disnake.Embed(
-                title=f"r/{subreddit.display_name}",
-                url=subreddit_url,
-                color=0xFF4500,
+                title=f"Subreddit Info",
+                color=0xFF5500,
             )
+            embed.add_field(name="Name", value=display_name, inline=True)
             embed.add_field(name="Title", value=title, inline=True)
-            embed.add_field(name="Subscribers", value=subscribers, inline=True)
-            embed.add_field(name="Active Users", value=active_users, inline=True)
-            embed.add_field(name="Over 18", value=over18, inline=True)
-            embed.add_field(name="Created", value=created, inline=True)
+            embed.add_field(name="URL", value=f"[URL]({subreddit_url})", inline=True)
+            embed.add_field(name="Active Users", value=active_user_count, inline=True)
+            embed.add_field(
+                name="Subscribers", value=f"{subscribers:,.0f}", inline=True
+            )
+            embed.add_field(
+                name="Images Allowed",
+                value="Yes" if allow_images else "No",
+                inline=True,
+            )
+            embed.add_field(
+                name="Videos Allowed",
+                value="Yes" if allow_videos else "No",
+                inline=True,
+            )
+            embed.add_field(
+                name="Over 18", value="Yes" if over18 else "No", inline=True
+            )
             embed.add_field(name="Description", value=description, inline=False)
-            embed.set_thumbnail(url=icon)
+            embed.set_thumbnail(url=icon.split("?")[0])
 
             await inter.send(embed=embed)
 
-        except asyncpraw.exceptions.PRAWException as e:
-            print(f"Error fetching Reddit data: {e}")
-            await inter.response.send_message("Error fetching Reddit data.")
+        except requests.exceptions.HTTPError:
+            print("Failed to retrieve data from Reddit.")
+            return None
         except Exception as e:
-            print(f"Error processing Reddit command: {e}")
-            await inter.response.send_message(f"Error processing Reddit command: {e}")
-        finally:
-            await reddit.close()
+            print(f"Error occurred during retrieval: {str(e)}")
+            return None
 
     # TODO add autocomplete witb element name, atomic number, symbol
     @commands.slash_command(

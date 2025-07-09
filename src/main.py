@@ -62,7 +62,6 @@ else:
 # On Ready
 @bot.event
 async def on_ready():
-
     print("")
     print("===============================================")
     print("The bot is ready!")
@@ -84,7 +83,10 @@ async def on_ready():
     print("")
     print("")
     print("================== Loaded Cogs ================")
-    status_task.start()
+
+    if not status_task.is_running():
+        status_task.start()
+
     await asyncio.sleep(0.01)
     print("===============================================")
 

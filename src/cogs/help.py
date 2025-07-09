@@ -27,7 +27,7 @@ class help(commands.Cog):
             embed = disnake.Embed(
                 title="Pop Cat Bot Help",
                 description="This is the command list for the pop cat bot.\nRemember that it is slash commands only!",
-                color=disnake.Color.blue(),
+                color=0x4169E1,
             )
             embed.add_field(
                 name="<a:POPCAT:1288559997944467590> | Fun",
